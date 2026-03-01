@@ -18,8 +18,19 @@ jobs:
           Invoke-WebRequest -Uri $url -OutFile "TE.zip" -ErrorAction Stop
           Expand-Archive -Path "TE.zip" -DestinationPath "./TE"
 
-      # 3. Uruchomienie analizy Best Practice Analyzer
+# 3. Diagnostyka i Uruchomienie BPA
       - name: Run Best Practice Analyzer
+        shell: pwsh
         run: |
-          # Ścieżka do folderu z Twoim modelem (SemanticModel) oraz pliku z regułami
-          ./TE/TabularEditor.exe "Sales_v2.SemanticModel/model.bim" -A "BPARules.json" -V
+          # 1. Sprawdźmy czy pliki istnieją (wynik zobaczysz w logach)
+          Write-Host "--- DIAGNOSTYKA ŚCIEŻEK ---"
+          Get-ChildItem -Recurse -Filter "model.bim" | Select-Object FullName
+          Get-ChildItem -Filter "BPARules.json" | Select-Object FullName
+          
+          $modelPath = "$env:GITHUB_WORKSPACE\Sales_v2.SemanticModel\model.bim"
+          $rulesPath = "$env:GITHUB_WORKSPACE\BPARules.json"
+          $tePath = "$env:GITHUB_WORKSPACE\TE\TabularEditor.exe"
+
+          Write-Host "--- URUCHAMIANIE TABULAR EDITOR ---"
+          # Uruchomienie z pełnymi ścieżkami
+          & $tePath "$modelPath" -A "$rulesPath" -V
