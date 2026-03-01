@@ -1,0 +1,30 @@
+EVALUATE
+VAR TableInfo =
+ADDCOLUMNS (
+INFO.VIEW.TABLES (),
+"Component", "Tables"
+)
+VAR ColumnInfo =
+ADDCOLUMNS (
+INFO.VIEW.COLUMNS (),
+"Component", "Columns"
+)
+VAR RelationshipInfo =
+ADDCOLUMNS (
+INFO.VIEW.RELATIONSHIPS (),
+"Component", "Relationships"
+)
+VAR MeasureInfo =
+ADDCOLUMNS (
+INFO.VIEW.MEASURES (),
+"Component", "Measures"
+)
+VAR Result =
+TOCSV ( TableInfo )
+& TOCSV ( ColumnInfo )
+& TOCSV ( RelationshipInfo )
+& TOCSV ( MeasureInfo )
+RETURN
+{
+Result
+}

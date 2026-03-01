@@ -1,0 +1,26 @@
+EVALUATE
+ADDCOLUMNS (
+    SUMMARIZE (
+        fact_sales,
+        fact_sales[Customer ID]
+    ),
+    "Revenue", [Revenue],
+    "Gross Profit", [Profit_Total],
+    "Margin %", [Profit Margin Percentage],
+    "Profit per Unit", [Profit / Unit],
+    "MinRevenue Threshold", [Min Revenue (Dynamic)],
+    "Target Margin", [Target Margin (Dynamic)],
+    "Decision Segment",
+        SWITCH (
+            TRUE (),
+            [Profit_Total] <= 0, "EXIT",
+            [Revenue] >= [Min Revenue (Dynamic)]
+                && [Profit Margin Percentage] < [Target Margin (Dynamic)], "FIX PROFIT",
+            [Revenue] >= [Min Revenue (Dynamic)]
+                && [Profit Margin Percentage] >= [Target Margin (Dynamic)], "SCALE",
+            [Revenue] < [Min Revenue (Dynamic)]
+                && [Profit Margin Percentage] >= [Target Margin (Dynamic)], "GROW",
+            "IGNORE"
+        )
+)
+ORDER BY [Revenue] DESC

@@ -1,0 +1,72 @@
+EVALUATE
+VAR __info_Annotations = SELECTCOLUMNS(FILTER(INFO.ANNOTATIONS(), [Name] IN {"__PBI_LocalDateTable", "__PBI_TemplateDateTable"}), "@Id", [Id], "@ObjectId", [ObjectId], "@ObjectType", [ObjectType], "@Name", [Name], "@Value", [Value])
+VAR __info_CalculationGroups = SELECTCOLUMNS(INFO.CALCULATIONGROUPS(), "@Id", [Id], "@TableId", [TableId], "@Precedence", [Precedence])
+VAR __info_CalculationItems = SELECTCOLUMNS(INFO.CALCULATIONITEMS(), "@Id", [Id], "@CalculationGroupId", [CalculationGroupId], "@FormatStringDefinitionId", [FormatStringDefinitionId], "@Name", [Name], "@Expression", [Expression])
+VAR __info_Columns = NATURALLEFTOUTERJOIN(NATURALLEFTOUTERJOIN(NATURALLEFTOUTERJOIN(
+    SELECTCOLUMNS(FILTER(INFO.COLUMNS(), [Type] <> 3), "@Id", [Id], "@TableId", [TableId], "@ExplicitName", [ExplicitName], "@InferredName", [InferredName], "@ExplicitDataType", [ExplicitDataType], "@InferredDataType", [InferredDataType], "@IsHidden", [IsHidden], "@State", [State], "@IsUnique", [IsUnique], "@IsKey", [IsKey], "@IsNullable", [IsNullable], "@Type", [Type], "@SourceColumn", [SourceColumn], "@Expression", [Expression], "@IsAvailableInMDX", [IsAvailableInMDX], "@SortByColumnId", [SortByColumnId], "@KeepUniqueRows", [KeepUniqueRows], "@EncodingHint", [EncodingHint], "@RelatedColumnDetailsId", [RelatedColumnDetailsId]),
+    SELECTCOLUMNS(
+        FILTER(INFO.STORAGETABLECOLUMNS(), [COLUMN_TYPE] = "BASIC_DATA" && NOT([ISROWNUMBER])),
+        "@Id", INT(MID([COLUMN_ID], FIND("(", [COLUMN_ID]) + 1, FIND(")", [COLUMN_ID]) - FIND("(", [COLUMN_ID]) - 1)),
+        "@TableId", INT(MID([TABLE_ID], FIND("(", [TABLE_ID]) + 1, FIND(")", [TABLE_ID]) - FIND("(", [TABLE_ID]) - 1)),
+        "@ExtEncoding", [COLUMN_ENCODING],
+        "@ExtDictionarySize", [DICTIONARY_SIZE]
+    )),
+    SELECTCOLUMNS(
+        FILTER(INFO.STORAGETABLES(), LEFT([TABLE_ID], 2) = "H$"),
+        "@Id", INT(MID([TABLE_ID], FIND("(", [TABLE_ID], FIND("(", [TABLE_ID]) + 1) + 1, (FIND(")", [TABLE_ID], FIND("(", [TABLE_ID], FIND("(", [TABLE_ID]) + 1) + 1)) - (FIND("(", [TABLE_ID], FIND("(", [TABLE_ID]) + 1) + 1))),
+        "@TableId", INT(MID([TABLE_ID], FIND("(", [TABLE_ID]) + 1, FIND(")", [TABLE_ID]) - FIND("(", [TABLE_ID]) - 1)),
+        "@ExtCardinality", [ROWS_COUNT] - 3
+    )),
+    GROUPBY(
+        SELECTCOLUMNS(
+            FILTER(INFO.STORAGETABLECOLUMNSEGMENTS(), RIGHT(LEFT([TABLE_ID], 2), 1) <> "$"),
+            "@Id", INT(MID([COLUMN_ID], FIND("(", [COLUMN_ID]) + 1, FIND(")", [COLUMN_ID]) - FIND("(", [COLUMN_ID]) - 1)),
+            "@TableId", INT(MID([TABLE_ID], FIND("(", [TABLE_ID]) + 1, FIND(")", [TABLE_ID]) - FIND("(", [TABLE_ID]) - 1)),
+            "@ExtDataSize", [USED_SIZE]
+        ),
+        [@Id],
+        [@TableId],
+        "@ExtDataSize", SUMX(CURRENTGROUP(), [@ExtDataSize] )
+    ))
+VAR __info_DetailRowsDefinitions = SELECTCOLUMNS(INFO.DETAILROWSDEFINITIONS(), "@Id", [Id], "@Expression", [Expression])
+VAR __info_FormatStringDefinitions = SELECTCOLUMNS(INFO.FORMATSTRINGDEFINITIONS(), "@Id", [Id], "@ObjectId", [ObjectId], "@ObjectType", [ObjectType], "@Expression", [Expression])
+VAR __info_GroupByColumns = SELECTCOLUMNS(INFO.GROUPBYCOLUMNS(), "@Id", [Id], "@RelatedColumnDetailsId", [RelatedColumnDetailsId], "@GroupingColumnId", [GroupingColumnId])
+var __info_Hierarchies = SELECTCOLUMNS(INFO.HIERARCHIES(), "@Id", [Id], "@TableId", [TableId], "@Name", [Name], "@IsHidden", [IsHidden])
+VAR __info_Kpis = SELECTCOLUMNS(INFO.KPIS(), "@Id", [Id], "@MeasureId", [MeasureId], "@TargetExpression", [TargetExpression], "@StatusExpression", [StatusExpression], "@TrendExpression", [TrendExpression])
+VAR __info_Levels = SELECTCOLUMNS(INFO.LEVELS(), "@Id", [Id], "@HierarchyId", [HierarchyId], "@Ordinal", [Ordinal], "@Name", [Name], "@ColumnId", [ColumnId])
+VAR __info_Measures = SELECTCOLUMNS(INFO.MEASURES(), "@Id", [Id], "@TableId", [TableId], "@Name", [Name], "@Expression", [Expression], "@IsHidden", [IsHidden], "@KpiId", [KpiId], "@DetailRowsDefinitionId", [DetailRowsDefinitionId])
+VAR __info_Model = SELECTCOLUMNS(INFO.MODEL(), "@Id", [Id], "@Name", [Name], "@DefaultMode", [DefaultMode], "@Culture", [Culture], "@StructureModifiedTime", [StructureModifiedTime], "@Version", [Version])
+VAR __info_Partitions = SELECTCOLUMNS(INFO.PARTITIONS(), "@Id", [Id], "@TableId", [TableId], "@QueryDefinition", IF([Type] = 2, [QueryDefinition]), "@Type", [Type], "@Mode", [Mode])
+VAR __info_RelatedColumnDetails = SELECTCOLUMNS(INFO.RELATEDCOLUMNDETAILS(), "@Id", [Id], "@ColumnId", [ColumnId])
+VAR __info_Relationships = SELECTCOLUMNS(INFO.RELATIONSHIPS(), "@Id", [Id], "@ModelId", [ModelId], "@Name", [Name], "@IsActive", [IsActive], "@Type", [Type], "@CrossFilteringBehavior", [CrossFilteringBehavior], "@JoinOnDateBehavior", [JoinOnDateBehavior], "@RelyOnReferentialIntegrity", [RelyOnReferentialIntegrity], "@FromColumnId", [FromColumnId], "@FromCardinality", [FromCardinality], "@ToColumnId", [ToColumnId], "@ToCardinality", [ToCardinality], "@SecurityFilteringBehavior", [SecurityFilteringBehavior])
+VAR __info_Roles = SELECTCOLUMNS(INFO.ROLES(), "@Id", [Id], "@ModelId", [ModelId], "@Name", [Name])
+VAR __info_Tables = NATURALLEFTOUTERJOIN(
+    SELECTCOLUMNS(INFO.TABLES(), "@Id", [Id], "@ModelId", [ModelId], "@Name", [Name], "@DataCategory", [DataCategory], "@IsHidden", [IsHidden], "@IsPrivate", [IsPrivate], "@DefaultDetailRowsDefinitionId", [DefaultDetailRowsDefinitionId], "@CalculationGroupId", [CalculationGroupId]),
+    SELECTCOLUMNS(
+        FILTER(INFO.STORAGETABLES(), RIGHT(LEFT([TABLE_ID], 2), 1) <> "$"),
+        "@Id", INT(MID([TABLE_ID], FIND("(", [TABLE_ID]) + 1, FIND(")", [TABLE_ID]) - FIND("(", [TABLE_ID]) - 1)),
+        "@ExtRowsCount", [ROWS_COUNT],
+        "@ExtRiViolationCount", [RIVIOLATION_COUNT]
+    ))
+VAR __info_TablePermissions = SELECTCOLUMNS(INFO.TABLEPERMISSIONS(), "@Id", [Id], "@RoleId", [RoleId], "@TableId", [TableId], "@FilterExpression", [FilterExpression])
+RETURN
+{
+    ("INFO.ANNOTATIONS", TOJSON(__info_Annotations, -1)),
+    ("INFO.CALCULATIONGROUPS", TOJSON(__info_CalculationGroups, -1)),
+    ("INFO.CALCULATIONITEMS", TOJSON(__info_CalculationItems, -1)),
+    ("INFO.COLUMNS", TOJSON(__info_Columns, -1)),
+    ("INFO.DETAILROWSDEFINITIONS", TOJSON(__info_DetailRowsDefinitions, -1)),
+    ("INFO.FORMATSTRINGDEFINITIONS", TOJSON(__info_FormatStringDefinitions, -1)),
+    ("INFO.GROUPBYCOLUMNS", TOJSON(__info_GroupByColumns, -1)),
+    ("INFO.HIERARCHIES", TOJSON(__info_Hierarchies, -1)),
+    ("INFO.KPIS", TOJSON(__info_Kpis, -1)),
+    ("INFO.LEVELS", TOJSON(__info_Levels, -1)),
+    ("INFO.MEASURES", TOJSON(__info_Measures, -1)),
+    ("INFO.MODEL", TOJSON(__info_Model, -1)),
+    ("INFO.PARTITIONS", TOJSON(__info_Partitions, -1)),
+    ("INFO.RELATEDCOLUMNDETAILS", TOJSON(__info_RelatedColumnDetails, -1)),
+    ("INFO.RELATIONSHIPS", TOJSON(__info_Relationships, -1)),
+    ("INFO.ROLES", TOJSON(__info_Roles, -1)),
+    ("INFO.TABLES", TOJSON(__info_Tables, -1)),
+    ("INFO.TABLEPERMISSIONS", TOJSON(__info_TablePermissions, -1))
+}
