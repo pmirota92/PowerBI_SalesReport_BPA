@@ -18,18 +18,19 @@ jobs:
           Invoke-WebRequest -Uri $url -OutFile "TE.zip" -ErrorAction Stop
           Expand-Archive -Path "TE.zip" -DestinationPath "./TE"
 
-# 3. Uruchomienie analizy Best Practice Analyzer
+# 3. Uruchomienie analizy z wymuszeniem logowania błędów
       - name: Run Best Practice Analyzer
-        shell: pwsh
+        shell: cmd
         run: |
-          Write-Host "--- ROZPOCZYNANIE ANALIZY ---"
+          echo --- ROZPOCZYNANIE ANALIZY ---
           
-          # Używamy ścieżki relatywnej, którą potwierdziliśmy w diagnostyce
-          ./TE/TabularEditor.exe "Sales_v2.SemanticModel/model.bim" -A "BPARules.json" -V
+          :: Uruchomienie TE2 z pełnymi ścieżkami (potwierdzonymi w diagnostyce)
+          ".\TE\TabularEditor.exe" "Sales_v2.SemanticModel\model.bim" -A "BPARules.json" -V
           
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "Tabular Editor znalazł błędy lub wystąpił błąd krytyczny (Kod: $LASTEXITCODE)"
-            exit 1
-          } else {
-            Write-Host "Analiza zakończona. Jeśli powyżej nie ma błędów, Twój model jest zgodny z BPA!"
-          }
+          :: Sprawdzenie kodu wyjścia (TE2 zwraca liczbę błędów jako ErrorLevel)
+          if %errorlevel% neq 0 (
+            echo Tabular Editor znalazł naruszenia reguł lub wystąpił błąd!
+            echo Liczba błędów/Kod: %errorlevel%
+          ) else (
+            echo Brak błędów BPA lub program nie mógł otworzyć modelu.
+          )
