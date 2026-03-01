@@ -22,4 +22,4 @@ jobs:
       - name: Run Best Practice Analyzer
         run: |
           # Ścieżka do folderu z Twoim modelem (SemanticModel) oraz pliku z regułami
-          ./TE/TabularEditor.exe "./Sales_v2.SemanticModel/definition.pbism" -A "./BPARules.json" -V
+          ./TE/TabularEditor.exe "./Sales_v2.pbip" -A "./BPARules.json" -V
