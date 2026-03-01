@@ -1,0 +1,22 @@
+name: Power BI Best Practice Check
+
+on: [push, pull_request]
+
+jobs:
+  check-rules:
+    runs-on: windows-latest  # Musi być Windows, bo Tabular Editor 2 to aplikacja .exe
+    steps:
+      # 1. Pobranie Twojego kodu z repozytorium na maszynę GitHuba
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Pobranie darmowej wersji Tabular Editor 2 (CLI)
+      - name: Download Tabular Editor CLI
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/TabularEditor/TabularEditor/releases/download/2.16.1/TabularEditor.2.16.1.zip" -OutFile "TE.zip"
+          Expand-Archive -Path "TE.zip" -DestinationPath "./TE"
+
+      # 3. Uruchomienie analizy (To jest ta najważniejsza część z poprawioną ścieżką)
+      - name: Run Best Practice Analyzer
+        run: |
+          ./TE/TabularEditor.exe "./Sales_v2.SemanticModel" -A "./BPARules.json" -V
