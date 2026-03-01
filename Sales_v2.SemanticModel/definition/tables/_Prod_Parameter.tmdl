@@ -1,0 +1,48 @@
+table _Prod_Parameter
+	lineageTag: 4c4f8be8-8ed9-44d6-ae3c-e9c57ba84e46
+
+	column _Prod_Parameter
+		lineageTag: 6b3c344a-4937-41d0-b4ed-56fe7c66d2b4
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: '_Prod_Parameter Order'
+
+		relatedColumnDetails
+			groupByColumn: '_Prod_Parameter Fields'
+
+		annotation SummarizationSetBy = Automatic
+
+	column '_Prod_Parameter Fields'
+		isHidden
+		lineageTag: 324edb2a-0920-4bc2-bb12-391b175936be
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: '_Prod_Parameter Order'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
+
+		annotation SummarizationSetBy = Automatic
+
+	column '_Prod_Parameter Order'
+		isHidden
+		formatString: 0
+		lineageTag: cfc7c95d-4e61-49dd-92aa-33147592ae0e
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Prod_Parameter = calculated
+		mode: import
+		source =
+				{
+				    ("Category", NAMEOF('dim_product'[Category]), 0),
+				    ("Sub-Category", NAMEOF('dim_product'[Sub-Category]), 1)
+				}
+
+	annotation PBI_Id = 6ab0464806fd4e2c8f6c814a6e9332c5
+

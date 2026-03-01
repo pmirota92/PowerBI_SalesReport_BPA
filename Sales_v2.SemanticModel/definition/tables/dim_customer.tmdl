@@ -1,0 +1,48 @@
+table dim_customer
+	lineageTag: 9cb083bd-08be-40f0-a044-4474f273381c
+
+	column 'Customer ID'
+		dataType: string
+		lineageTag: 4e97a40a-306a-408d-8e68-61630451a356
+		summarizeBy: none
+		sourceColumn: Customer ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Name'
+		dataType: string
+		lineageTag: 2c59aa66-b64a-4ef0-b513-2919db49ead7
+		summarizeBy: none
+		sourceColumn: Customer Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Segment
+		dataType: string
+		lineageTag: 5c452666-8a89-4f17-8f03-09ec455c1616
+		summarizeBy: none
+		sourceColumn: Segment
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer Segment' = [Customer Decision Segment]
+		lineageTag: 11b58bea-11f4-4c4c-b946-f8bacbed10c0
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_customer = m
+		mode: import
+		queryGroup: dim_tbl
+		source =
+				let
+				    Source = Orders,
+				    DimCustomer = Table.Distinct(Table.SelectColumns(Source, {"Customer ID", "Customer Name", "Segment"})),
+				    #"Changed Type" = Table.TransformColumnTypes(DimCustomer,{{"Customer ID", type text}, {"Customer Name", type text}, {"Segment", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

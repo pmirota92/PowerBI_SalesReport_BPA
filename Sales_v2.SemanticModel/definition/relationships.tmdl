@@ -1,0 +1,36 @@
+relationship AutoDetected_c9b25a96-88e3-449a-bd7a-841110b1c641
+	fromColumn: fact_sales.'Product ID'
+	toColumn: dim_product.'Product ID'
+
+relationship 231b012d-bab2-1731-498c-96bdfa8f28bf
+	fromColumn: fact_sales.'Order Date'
+	toColumn: dim_date.Date
+
+relationship e0e4e530-7a9e-5ba8-da36-5d7ce6779eed
+	fromColumn: fact_sales.'Customer ID'
+	toColumn: dim_customer.'Customer ID'
+
+relationship AutoDetected_aebc32a2-ad9d-41c3-99bc-762482592e36
+	fromColumn: fact_sales.GeoID
+	toColumn: dim_geo.GeoID
+
+relationship e3152838-1889-8325-6e78-8473c6a3579a
+	fromColumn: ProductPurchase_Diff.'Order Date'
+	toColumn: dim_date.Date
+
+relationship ba407830-87b2-bde0-30bb-b84cbbce7942
+	fromColumn: ProductPurchase_Diff.'Product ID'
+	toColumn: dim_product.'Product ID'
+
+relationship 9557e753-30a6-27c5-48a8-5ded69c43fb0
+	fromColumn: CustomerPurchase_Diff.'Customer ID'
+	toColumn: dim_customer.'Customer ID'
+
+relationship a37720ec-0ce3-7fdf-58eb-f3b3196a5379
+	fromColumn: CustomerPurchase_Diff.'Order Date'
+	toColumn: dim_date.Date
+
+relationship ebc1c38d-01e2-5855-ef55-3dbf9d4924fa
+	fromColumn: CustomerProductFrequency.'Customer ID'
+	toColumn: dim_customer.'Customer ID'
+

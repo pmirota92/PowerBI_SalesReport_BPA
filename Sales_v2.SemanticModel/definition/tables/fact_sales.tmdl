@@ -1,0 +1,140 @@
+table fact_sales
+	lineageTag: 5d21b73c-a3c0-4017-9631-72196402ed05
+
+	column 'Order ID'
+		dataType: string
+		lineageTag: 2f2bab8e-a1dc-4b44-8449-31d0f65c9e95
+		summarizeBy: none
+		sourceColumn: Order ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Order Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: b11c6ede-5236-4bbc-b1a8-cf4f89e70274
+		summarizeBy: none
+		sourceColumn: Order Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Ship Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 2585b1df-a7b5-44c4-b27f-cc31444184c3
+		summarizeBy: none
+		sourceColumn: Ship Date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Ship Mode'
+		dataType: string
+		lineageTag: fdc08f18-e082-4bbd-8ad9-e5fa87096d01
+		summarizeBy: none
+		sourceColumn: Ship Mode
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer ID'
+		dataType: string
+		lineageTag: da726732-5f2b-4db6-b992-e396d7aca68e
+		summarizeBy: none
+		sourceColumn: Customer ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Product ID'
+		dataType: string
+		lineageTag: c925350a-5735-4f40-8e4a-d85330bae40c
+		summarizeBy: none
+		sourceColumn: Product ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Product Name'
+		dataType: string
+		lineageTag: 056c40f2-eeef-428f-895f-eeaf3aa1cba8
+		summarizeBy: none
+		sourceColumn: Product Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sales
+		dataType: double
+		lineageTag: 3c87eb96-bb4d-489a-8931-7fe102ef98b6
+		summarizeBy: sum
+		sourceColumn: Sales
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Quantity
+		dataType: double
+		lineageTag: c971faca-ecf0-46b8-8730-0d31ec0bd1c8
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Discount
+		dataType: double
+		lineageTag: a2e4cd03-44a7-467b-b50f-ffe414056dfc
+		summarizeBy: sum
+		sourceColumn: Discount
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column Profit
+		dataType: double
+		lineageTag: bdaaa448-6dbb-4b58-87ee-1f0370946564
+		summarizeBy: sum
+		sourceColumn: Profit
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column GeoID
+		dataType: string
+		lineageTag: 7f4bc5da-0f42-434f-87f4-d762bb6cf6d3
+		summarizeBy: none
+		sourceColumn: GeoID
+
+		annotation SummarizationSetBy = Automatic
+
+	column PricePerUnit =
+			
+			DIVIDE(fact_sales[Sales], fact_sales[Quantity])
+		lineageTag: c6002f7e-9f26-46f4-a892-781a90846f20
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition fact_sales = m
+		mode: import
+		queryGroup: fact_tbl
+		source =
+				let
+				    Source = Orders,
+				    FactSales = Table.SelectColumns(Source, {"Order ID", "Order Date", "Ship Date","Ship Mode", "Customer ID", "Product ID","Product Name","Postal Code","City", "Sales", "Quantity","Discount", "Profit"}),
+				    AddGeoID = Table.AddColumn(FactSales, "GeoID", each [Postal Code] & " - " & [City]),
+				    #"Changed Type" = Table.TransformColumnTypes(AddGeoID,{{"Order ID", type text}, {"Order Date", type date}, {"Ship Date", type date}, {"Ship Mode", type text}, {"Customer ID", type text}, {"Product ID", type text}, {"Product Name", type text}, {"Postal Code", Int64.Type}, {"Sales", type number}, {"Quantity", type number}, {"Discount", type number}, {"Profit", type number}, {"GeoID", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Postal Code", "City"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

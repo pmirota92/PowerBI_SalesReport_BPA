@@ -1,0 +1,80 @@
+table CustomerPurchase_Diff
+	lineageTag: 7e597f6f-ad4f-4a7b-95cb-2ec265190743
+
+	measure CustomerAvgDaysBetweenPurchases = AVERAGE('CustomerPurchase_Diff'[DaysBetweenPurchases])
+		lineageTag: c82d6592-79fa-4112-8348-b74e650e8032
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Customer ID'
+		lineageTag: 6d95665f-b042-46f7-b4ec-5162f29eb7f1
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: fact_sales[Customer ID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Order Date'
+		formatString: General Date
+		lineageTag: 8c1b5a70-5f2f-4dd2-a151-507448be477e
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: fact_sales[Order Date]
+
+		annotation SummarizationSetBy = Automatic
+
+	column PreviousPurchaseDate
+		formatString: General Date
+		lineageTag: a6f6271e-b350-42d3-90aa-0eafd4df2ce7
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [PreviousPurchaseDate]
+
+		annotation SummarizationSetBy = Automatic
+
+	column DaysBetweenPurchases
+		formatString: 0
+		lineageTag: 7c5e2bbb-11c0-4610-a4da-8cf1610fe4cd
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [DaysBetweenPurchases]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition CustomerPurchase_Diff = calculated
+		mode: import
+		source = ```
+				
+				ADDCOLUMNS(
+				    SUMMARIZE(
+				        fact_sales, 
+				        fact_sales[Customer ID], 
+				        fact_sales[Order Date]
+				    ),
+				    "PreviousPurchaseDate", 
+				    CALCULATE(
+				        MAX(fact_sales[Order Date]),
+				        FILTER(
+				            fact_sales,
+				            fact_sales[Customer ID] = EARLIER(fact_sales[Customer ID]) &&
+				            fact_sales[Order Date] < EARLIER(fact_sales[Order Date])
+				        )
+				    ),
+				    "DaysBetweenPurchases", 
+				    DATEDIFF(
+				        CALCULATE(
+				            MAX(fact_sales[Order Date]),
+				            FILTER(
+				                fact_sales,
+				                fact_sales[Customer ID] = EARLIER(fact_sales[Customer ID]) &&
+				                fact_sales[Order Date] < EARLIER(fact_sales[Order Date])
+				            )
+				        ),
+				        fact_sales[Order Date],
+				        DAY
+				    )
+				)
+				```
+
+	annotation PBI_Id = 7d7e648716a14698a45763b3afcb55da
+

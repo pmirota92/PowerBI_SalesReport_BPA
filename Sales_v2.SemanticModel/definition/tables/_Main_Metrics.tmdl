@@ -1,0 +1,84 @@
+table _Main_Metrics
+	lineageTag: fd953a11-0309-4f34-b33f-a6667b56a3bf
+
+	measure 'BIM Info' =
+			
+			VAR TableInfo =
+			    ADDCOLUMNS (
+			        INFO.VIEW.TABLES (),
+			        "Component", "Tables"
+			    )
+			VAR ColumnInfo =
+			    ADDCOLUMNS (
+			        INFO.VIEW.COLUMNS (),
+			        "Component", "Columns"
+			    )
+			VAR RelationshipInfo =
+			    ADDCOLUMNS (
+			        INFO.VIEW.RELATIONSHIPS (),
+			        "Component", "Relationships"
+			    )
+			VAR MeasureInfo =
+			    ADDCOLUMNS (
+			        INFO.VIEW.MEASURES (),
+			        "Component", "Measures"
+			    )
+			VAR Result =
+			    TOCSV ( TableInfo )
+			        & TOCSV ( ColumnInfo )
+			        & TOCSV ( RelationshipInfo )
+			        & TOCSV ( MeasureInfo )
+			RETURN
+			    Result
+			
+			
+			// Authored by Brian Julius, Feb 2025
+		lineageTag: 6efc60d4-46a6-4016-9ed7-fd15b73ceb3c
+
+	column _Main_Metrics
+		lineageTag: 407786ee-570b-4787-b703-2dadcb4cf58e
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: '_Main_Metrics Order'
+
+		relatedColumnDetails
+			groupByColumn: '_Main_Metrics Fields'
+
+		annotation SummarizationSetBy = Automatic
+
+	column '_Main_Metrics Fields'
+		isHidden
+		lineageTag: 540d9e12-aec7-45be-afe6-2c41604a1761
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: '_Main_Metrics Order'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
+
+		annotation SummarizationSetBy = Automatic
+
+	column '_Main_Metrics Order'
+		isHidden
+		formatString: 0
+		lineageTag: a0dba503-a12c-4031-8832-b4a634e015ef
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Main_Metrics = calculated
+		mode: import
+		source =
+				{
+				    ("Profit", NAMEOF('Calculations'[Profit_Total]), 0),
+				    ("Sales", NAMEOF('Calculations'[Sales_Total]), 1),
+				    ("Unit Sold", NAMEOF('Calculations'[Unit_Sold]), 2),
+				    ("COGs", NAMEOF('Calculations'[COGs]), 3)
+				}
+
+	annotation PBI_Id = 4265994774e34af0b08de675789471da
+

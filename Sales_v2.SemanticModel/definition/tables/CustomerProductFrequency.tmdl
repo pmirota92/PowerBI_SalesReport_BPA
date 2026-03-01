@@ -1,0 +1,40 @@
+table CustomerProductFrequency
+	lineageTag: 398bac9d-6c65-4f8f-af96-3419a2f721a1
+
+	column 'Customer ID'
+		lineageTag: bae5b598-b5c4-4b14-8403-80803fdd0fe5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: fact_sales[Customer ID]
+
+		annotation SummarizationSetBy = Automatic
+
+	column PurchaseCount
+		formatString: #,0
+		lineageTag: 0d6979e6-ce68-4429-978a-4b9277fb48f5
+		summarizeBy: sum
+		isNameInferred
+		sourceColumn: [PurchaseCount]
+
+		annotation SummarizationSetBy = Automatic
+
+	column CustomerType =
+			
+			IF([PurchaseCount] = 1, "One-time", "Returning")
+		lineageTag: 7d8aad99-d681-4d01-93f1-c328c28c0d1d
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition CustomerProductFrequency = calculated
+		mode: import
+		source =
+				
+				SUMMARIZE(
+				    fact_sales,
+				    fact_sales[Customer ID],
+				    "PurchaseCount", COUNTROWS(fact_sales)
+				)
+
+	annotation PBI_Id = ef8813be43294ba2ab16eedb5a7338ff
+

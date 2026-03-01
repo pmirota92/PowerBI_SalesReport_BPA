@@ -1,0 +1,50 @@
+table _Geo_Parameter
+	lineageTag: 2b0eeb99-d525-42a3-9b94-e60cffcd6801
+
+	column _Geo_Parameter
+		lineageTag: 5872e2a4-9738-4a3a-868d-f039c8331aed
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: '_Geo_Parameter Order'
+
+		relatedColumnDetails
+			groupByColumn: '_Geo_Parameter Fields'
+
+		annotation SummarizationSetBy = Automatic
+
+	column '_Geo_Parameter Fields'
+		isHidden
+		lineageTag: 58b1c3b3-0176-48e0-9bb9-213757bd1195
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: '_Geo_Parameter Order'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
+
+		annotation SummarizationSetBy = Automatic
+
+	column '_Geo_Parameter Order'
+		isHidden
+		formatString: 0
+		lineageTag: 49ee4593-5b4d-4628-88d4-eca6a48469ec
+		summarizeBy: sum
+		sourceColumn: [Value3]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Geo_Parameter = calculated
+		mode: import
+		source =
+				{
+				    ("Region", NAMEOF('dim_geo'[Region]), 0),
+				    ("State", NAMEOF('dim_geo'[State]), 1),
+				    ("Country", NAMEOF('dim_geo'[Country]), 2),
+				    ("City", NAMEOF('dim_geo'[City]), 3)
+				}
+
+	annotation PBI_Id = bd11efa3181e4df8b036a0ef8820ef83
+

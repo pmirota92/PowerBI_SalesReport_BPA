@@ -1,0 +1,516 @@
+table Calculations
+	lineageTag: 9f41c56c-e93d-4282-83c3-2683dac060b0
+
+	measure 'Header 2' =
+			
+			VAR _header_main="Sales Overview"
+			Return
+			_header_main
+		lineageTag: c586bbe6-5313-400a-85ea-0b3701e43304
+
+	measure Profit_Total = SUM(fact_sales[Profit])
+		formatString: #,0.00
+		lineageTag: 00e34879-68fa-4c29-922b-ace6a06198c4
+
+	measure Sales_Total = SUM(fact_sales[Sales])
+		formatString: #,0.00
+		lineageTag: 1421aec4-9a5b-4253-a9e1-eae9dca00499
+
+	measure Unit_Sold = SUM(fact_sales[Quantity])
+		formatString: #,0.00
+		lineageTag: 69a3e274-6fc9-476c-8827-11fad2ebc30d
+
+	measure COGs = [Sales_Total]-[Profit_Total]
+		formatString: #,0.00
+		lineageTag: 6f5383b3-34cb-40d6-90ce-c4f93bc63daa
+
+	measure Label2 = ```
+			
+			VAR SelectedMeasure = SELECTEDVALUE(_Main_Metrics[_Main_Metrics Order])
+			VAR IsMonthSelected = HASONEVALUE(dim_date[Month Name Short]) 
+			VAR result = 
+			    SWITCH(
+			        TRUE(),
+			        SelectedMeasure = 0, If([Profit_Total]>[Previous Month Value],[Profit_Total],[Previous Month Value]),
+			        SelectedMeasure = 1, If([Sales_Total]>[Previous Month Value],[Sales_Total],[Previous Month Value]),
+			        SelectedMeasure = 2, If([Unit_Sold]>[Previous Month Value],[Unit_Sold],[Previous Month Value]),
+			        SelectedMeasure = 3, If([COGs]>[Previous Month Value],[COGs],[Previous Month Value]),
+			        BLANK()
+			    )
+			RETURN
+			    IF(IsMonthSelected, result, [Current Month Value])
+			```
+		formatString: 0
+		lineageTag: 39773ba9-199d-4e22-aedf-4865dc73fa80
+
+	measure 'Label Comparison' = ```
+			
+			VAR _PT_current_value=[Profit_Total]
+			VAR _PT_variance_vs_pm=[Profit_Total]-[Previous Month Value]
+			VAR _ST_current_value=[Sales_Total]
+			VAR _ST_variance_vs_pm=[Sales_Total]-[Previous Month Value]
+			VAR _UT_current_value=[Unit_Sold]
+			VAR _UT_variance_vs_pm=[Unit_Sold]-[Previous Month Value]
+			VAR _CT_current_value=[COGs]
+			VAR _CT_variance_vs_pm=[COGs]-[Previous Month Value]
+			
+			VAR SelectedMeasure = SELECTEDVALUE(_Main_Metrics[_Main_Metrics Order])
+			VAR IsMonthSelected = HASONEVALUE(dim_date[Month Name Short]) 
+			VAR result = 
+			    SWITCH(
+			        TRUE(),
+			        SelectedMeasure = 0,  Format(_PT_current_value, "# ##0") & " |Δ" & Format(_PT_variance_vs_pm, "# ##0"),
+			        SelectedMeasure = 1,  Format(_ST_current_value, "# ##0") & " |Δ" & Format(_ST_variance_vs_pm, "# ##0"),
+			        SelectedMeasure = 2,  Format(_UT_current_value, "# ##0") & " |Δ" & Format(_UT_variance_vs_pm, "# ##0"),
+			        SelectedMeasure = 3,  Format(_CT_current_value, "# ##0") & " |Δ" & Format(_CT_variance_vs_pm, "# ##0"),
+			        BLANK()
+			    )
+			RETURN
+			    IF(IsMonthSelected, result, [Current Month Value])
+			```
+		lineageTag: 6fb00448-eb73-41eb-bf26-f80737aa48db
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Profit Margin Percentage' =
+			
+			VAR _TotalSales = SUM(fact_sales[Sales])
+			VAR _TotalProfit = SUM(fact_sales[Profit])
+			RETURN
+			DIVIDE(_TotalProfit , _TotalSales )
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 36c84a8b-8e4b-4df0-81f0-ccdd163a2cb1
+
+	measure 'YoY Profit Growth %' = ```
+			
+			VAR _CurrentYearProfit = SUM(fact_sales[Profit])
+			VAR _PreviousYearProfit = CALCULATE(SUM(fact_sales[Profit]), SAMEPERIODLASTYEAR(dim_date[Date]))
+			
+			RETURN 
+			DIVIDE(_CurrentYearProfit - _PreviousYearProfit, _PreviousYearProfit, 0)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: f6da8d3e-b4e1-4784-8223-5b3885b6319a
+
+	measure 'YoY Sales Growth %' = ```
+			
+			VAR _CurrentYearSales = SUM(fact_sales[Sales])
+			VAR _PreviousYearSales = CALCULATE(SUM(fact_sales[Sales]), SAMEPERIODLASTYEAR(dim_date[Date]))
+			
+			RETURN 
+			DIVIDE(_CurrentYearSales - _PreviousYearSales, _PreviousYearSales, 0)
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 2e08ad93-00a7-4072-adad-317e3c8b0d85
+
+	measure 'YoY Profit % Arrow' =
+			
+			
+			VAR _upparr=UNICHAR(129129)
+			VAR _darr=UNICHAR(129131)
+			VAR _varperc=[YoY Profit Growth %]
+			VAR _varnum= [YoY Profit Growth %]
+			VAR _blank= ISBLANK([Profit_Total])
+			return
+			If (_blank, blank(), IF(_varnum>0, round(_varperc,2)*100 & "% " & _upparr,
+			                                round(_varperc,2)*100 & "% " & _darr))
+		lineageTag: f43e0a29-43cf-4232-b535-cdcbe5952948
+
+	measure 'YoY Sales % Arrow' =
+			
+			
+			VAR _upparr=UNICHAR(129129)
+			VAR _darr=UNICHAR(129131)
+			VAR _varperc=[YoY Sales Growth %]
+			VAR _varnum= [YoY Sales Growth %]
+			VAR _blank= ISBLANK([Sales_Total])
+			return
+			If (_blank, blank(), IF(_varnum>0, round(_varperc,2)*100 & "% " & _upparr,
+			                                round(_varperc,2)*100 & "% " & _darr))
+		lineageTag: 4298fdfa-a7ff-4454-876c-6f151ee5c282
+
+	measure 'Average Days Between Purchases' = ```
+			
+			AVERAGEX(
+			    ADDCOLUMNS(
+			        SUMMARIZE(fact_sales, fact_sales[Customer ID], fact_sales[Order Date]),
+			        "PreviousPurchaseDate", 
+			        CALCULATE(
+			            MAX(fact_sales[Order Date]),
+			            FILTER(
+			                fact_sales,
+			                fact_sales[Customer ID] = EARLIER(fact_sales[Customer ID]) &&
+			                fact_sales[Order Date] < EARLIER(fact_sales[Order Date])
+			            )
+			        )
+			    ),
+			    DATEDIFF([PreviousPurchaseDate], fact_sales[Order Date], DAY)
+			)
+			
+			```
+		lineageTag: f01b9aa3-cb25-4c63-bd44-ad43eba4cd25
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Days Between Purchases Product' = ```
+			
+			AVERAGEX(
+			    ADDCOLUMNS(
+			        SUMMARIZE(fact_sales, fact_sales[Product ID], fact_sales[Order Date]),
+			        "PreviousPurchaseDate", 
+			        CALCULATE(
+			            MAX(fact_sales[Order Date]),
+			            FILTER(
+			                fact_sales,
+			                fact_sales[Product ID] = EARLIER(fact_sales[Product ID]) &&
+			                fact_sales[Order Date] < EARLIER(fact_sales[Order Date])
+			            )
+			        )
+			    ),
+			    DATEDIFF([PreviousPurchaseDate], fact_sales[Order Date], DAY)
+			)
+			```
+		lineageTag: 5fac28cf-7797-4cd7-af6d-e758105ee7c8
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure AvgBasketValue = ```
+			
+			DIVIDE(
+			    SUM(fact_sales[Sales]), 
+			    DISTINCTCOUNT(fact_sales[Order ID])
+			)
+			```
+		lineageTag: e31ac631-72db-4872-8237-ff0dce586a63
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Dynamic Chart Title' =
+			
+			VAR SelectedMeasure = SELECTEDVALUE(_Main_Metrics[_Main_Metrics Order])
+			VAR _result=    SWITCH(
+			        TRUE(),
+			        SelectedMeasure = 0, "Total Profit Over Time",
+			        SelectedMeasure = 1, "Total Sales Over Time",
+			        SelectedMeasure = 2, "Total Units Sold Over Time",
+			        SelectedMeasure = 3, "Total COGS Over Time",
+			        "Select a measure"
+			    )
+			RETURN
+			_result
+		lineageTag: cbe6d473-1cec-4a3a-9e6e-6582079bf278
+
+	measure 'Previous Month Value' = ```
+			
+			VAR SelectedMeasure = SELECTEDVALUE(_Main_Metrics[_Main_Metrics Order])
+			VAR IsMonthSelected = HASONEVALUE(dim_date[Month Name Short]) 
+			VAR result = 
+			    SWITCH(
+			        TRUE(),
+			        SelectedMeasure = 0, CALCULATE([Profit_Total], PREVIOUSMONTH(dim_date[Date])),
+			        SelectedMeasure = 1, CALCULATE([Sales_Total], PREVIOUSMONTH(dim_date[Date])),
+			        SelectedMeasure = 2, CALCULATE([Unit_Sold], PREVIOUSMONTH(dim_date[Date])),
+			        SelectedMeasure = 3, CALCULATE([COGs], PREVIOUSMONTH(dim_date[Date])),
+			        BLANK()
+			    )
+			RETURN
+			    IF(IsMonthSelected, result, BLANK())
+			
+			
+			```
+		formatString: 0
+		lineageTag: b3466028-c9e5-443c-a84e-2a32702bae8e
+
+	measure 'Current Month Value' = ```
+			
+			VAR SelectedMeasure = SELECTEDVALUE(_Main_Metrics[_Main_Metrics Order])
+			VAR IsMonthSelected = HASONEVALUE(dim_date[Month Name Short]) 
+			VAR result = 
+			    SWITCH(
+			        TRUE(),
+			        SelectedMeasure = 0, [Profit_Total],
+			        SelectedMeasure = 1, [Sales_Total],
+			        SelectedMeasure = 2, [Unit_Sold],
+			        SelectedMeasure = 3, [COGs],
+			        BLANK()
+			    )
+			RETURN
+			     result
+			```
+		lineageTag: aa31878a-b574-4814-88b4-6f5c628a590c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Color Label' = ```
+			
+			
+			VAR _PT_variance_vs_pm=[Profit_Total]-[Previous Month Value]
+			VAR _ST_variance_vs_pm=[Sales_Total]-[Previous Month Value]
+			VAR _UT_variance_vs_pm=[Unit_Sold]-[Previous Month Value]
+			VAR _CT_variance_vs_pm=[COGs]-[Previous Month Value]
+			
+			VAR SelectedMeasure = SELECTEDVALUE(_Main_Metrics[_Main_Metrics Order])
+			VAR IsMonthSelected = HASONEVALUE(dim_date[Month Name Short]) 
+			VAR result = 
+			    SWITCH(
+			        TRUE(),
+			        SelectedMeasure = 0, If ( _PT_variance_vs_pm>0, "Green", "Red"),
+			        SelectedMeasure = 1, If ( _ST_variance_vs_pm>0, "Green", "Red"),
+			        SelectedMeasure = 2, If ( _UT_variance_vs_pm>0, "Green", "Red"),
+			        SelectedMeasure = 3, If ( _CT_variance_vs_pm>0, "Green", "Red"),
+			        BLANK()
+			    )
+			RETURN
+			    IF(IsMonthSelected, result)
+			```
+		lineageTag: 3103818d-2e7e-4edd-a65f-08f2806fdb73
+
+	measure 'Dynamic Title' =
+			
+			VAR SelectedMeasure = SELECTEDVALUE(_Main_Metrics[_Main_Metrics Order])
+			VAR _result=    SWITCH(
+			        TRUE(),
+			        SelectedMeasure = 0, "Profit",
+			        SelectedMeasure = 1, "Sales",
+			        SelectedMeasure = 2, "Units Sold",
+			        SelectedMeasure = 3, "COGS",
+			        "Select a measure"
+			    )
+			RETURN
+			_result
+		lineageTag: e69f737a-8dc8-41bd-bf51-7b3a8f143e96
+
+	measure 'Label Profit Margin Percentage (Top3 & Bottom3)' = ```
+			
+			VAR RankDesc =
+			    RANKX (
+			        ALLSELECTED ( dim_date[YYYY-MM] ),
+			        CALCULATE ([Profit Margin Percentage] ),
+			        ,
+			        DESC,
+			        DENSE
+			    )
+			VAR RankAsc =
+			    RANKX ( ALLSELECTED ( dim_date[YYYY-MM] ), CALCULATE ( [Profit Margin Percentage] ),, ASC, DENSE )
+			RETURN
+			  IF (
+			        NOT ISBLANK ( [Profit Margin Percentage] ) && ( ( RankDesc <= 3 || RankAsc <= 4 ) ),
+			        [Profit Margin Percentage],
+			        BLANK ()
+			    )
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 37e9cea6-0919-4045-bb21-f01faa830ffb
+
+	measure 'Label Color (Top3 & Bottom3)' = ```
+			
+			VAR RankDesc =
+			    RANKX (
+			        ALLSELECTED ( dim_date[YYYY-MM] ),
+			        CALCULATE ( [Profit Margin Percentage] ),
+			        ,
+			        DESC,
+			        DENSE
+			    )
+			VAR RankAsc =
+			    RANKX ( ALLSELECTED ( dim_date[YYYY-MM] ), CALCULATE ( [Profit Margin Percentage] ),, ASC, DENSE )
+			RETURN
+			    IF (
+			        RankDesc <= 3,
+			        "#A1C197",
+			        // zielony dla TOP 3
+			        IF (
+			            RankAsc <= 4,
+			            "#FF404A",
+			            // czerwony dla BOTTOM 3
+			            "#000000" // czarny (domyślny)
+			        )
+			    )
+			
+			```
+		lineageTag: e365a0a3-a662-4124-b696-2b141073d3e9
+
+	measure Revenue =
+			
+			SUM ( fact_sales[Sales] )
+		lineageTag: f2cd431b-d401-4932-acda-664a0be152e4
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Revenue YoY' =
+			
+			CALCULATE (
+			    [Revenue],
+			    SAMEPERIODLASTYEAR ( dim_date[Date] )
+			)
+		lineageTag: 84dcfbd9-d107-47e7-8978-ee3ef75bd275
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Revenue YoY %' =
+			
+			DIVIDE ( [Revenue] - [Revenue YoY], [Revenue YoY] )
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 981d4963-3378-4302-983b-4658bd220e85
+
+	measure 'Revenue per Customer' =
+			
+			DIVIDE (
+			    [Revenue],
+			    DISTINCTCOUNT ( fact_sales[Customer ID] )
+			)
+		lineageTag: 3511ae0e-ae66-4a39-8d02-84d353c2078b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Margin per Customer' =
+			
+			DIVIDE (
+			    [Profit_Total],
+			    DISTINCTCOUNT ( fact_sales[Customer ID] )
+			)
+		lineageTag: 0c9174f5-e5ac-40cf-8a0f-4c3d3f85ef4f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Avg Price / Unit' =
+			
+			DIVIDE ( [Revenue], [Unit_Sold] )
+		lineageTag: c2920b25-affd-4c69-b520-00a8dc6b3942
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Avg Cost / Unit' =
+			
+			DIVIDE ( [COGs], [Unit_Sold] )
+		lineageTag: 3052b46a-e3f1-469f-8e46-21687db07859
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Profit / Unit' =
+			
+			DIVIDE ( [Profit_Total], [Unit_Sold] )
+		lineageTag: c085bed1-68a3-4017-8d19-5dba089ecdca
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Min Revenue (Dynamic)' = ```
+			
+			CALCULATE (
+			    [Revenue],
+			    ALL ( fact_sales[Customer ID] )
+			)
+			* 0.005
+			
+			```
+		lineageTag: a2ca0802-636a-46d1-984f-20e75d1014f3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Target Margin (Dynamic)' = 0.35
+		lineageTag: 49bc6070-41e9-401f-8a47-e8757aa32e1e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Above MinRevenue Flag' = ```
+			
+			IF ( [Revenue] >= [Min Revenue (Dynamic)], 1, 0 )
+			
+			```
+		formatString: 0
+		lineageTag: 226dc601-5dbc-4d37-9a7b-490dea76a405
+
+	measure 'Customer Decision Segment' = ```
+			
+			SWITCH (
+			    TRUE (),
+			    [Profit_Total] <= 0, "EXIT",
+			    [Revenue] >= [Min Revenue (Dynamic)]
+			        && [Profit Margin Percentage] < [Target Margin (Dynamic)], "FIX PROFIT",
+			    [Revenue] >= [Min Revenue (Dynamic)]
+			        && [Profit Margin Percentage] >= [Target Margin (Dynamic)], "SCALE",
+			    [Revenue] < [Min Revenue (Dynamic)]
+			        && [Profit Margin Percentage] >= [Target Margin (Dynamic)], "GROW",
+			    "IGNORE"
+			)
+			
+			```
+		lineageTag: b66415c7-5b00-41c7-a072-06ada5e55016
+
+	measure 'Positive Profit Flag' = ```
+			
+			IF ( [Profit_Total] > 0, 1, 0 )
+			
+			```
+		formatString: 0
+		lineageTag: 055d21cb-f791-4140-afc1-e409113c95d9
+
+	measure 'Customer Margin %' = ```
+			
+			CALCULATE ( [Profit Margin Percentage], REMOVEFILTERS ( dim_product ) )
+			
+			
+			```
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: c7bbff60-082a-4823-be55-47e300b33cbb
+
+	measure 'Margin Lift vs Customer (pp)' = ```
+			
+			( [Profit Margin Percentage] - [Customer Margin %] ) * 100
+			
+			```
+		lineageTag: cf431a96-f91c-4551-9279-55e24ba52cd0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Fix Profit Product Flag' = ```
+			
+			IF ( [Profit Margin Percentage] < [Target Margin (Dynamic)] && [Revenue] > 0, 1, 0 )
+			
+			```
+		formatString: 0
+		lineageTag: 0ac06d5f-f16e-4590-affe-d597a73a6ae9
+
+	measure 'Better Mix Product Flag' = ```
+			
+			IF ( [Margin Lift vs Customer (pp)] >= 5 && [Revenue] > 0, 1, 0 )
+			
+			```
+		formatString: 0
+		lineageTag: 392dfe34-2d69-4a5e-926d-70f28260b9bd
+
+	measure 'Company Product Revenue' =
+			
+			CALCULATE ( [Revenue], ALL ( fact_sales[Customer ID] ) )
+		lineageTag: 3829a3cd-e77c-4d6a-a447-c10c02b8b8af
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Company Product Margin %' =
+			
+			CALCULATE ( [Profit Margin Percentage], ALL ( fact_sales[Customer ID] ) )
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: 0963ad6e-16d4-4188-8d55-a36ad06b08b0
+
+	column Column1
+		dataType: string
+		lineageTag: 818b2dd3-5bbe-40ea-8839-5071714aba3c
+		summarizeBy: none
+		sourceColumn: Column1
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Calculations = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

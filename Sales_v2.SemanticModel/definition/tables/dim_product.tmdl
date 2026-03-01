@@ -1,0 +1,43 @@
+table dim_product
+	lineageTag: 7c97f0c8-1315-4c3d-ac74-bf025ff0d394
+
+	column 'Product ID'
+		dataType: string
+		lineageTag: c69bdcfb-baaf-4146-bd11-5918c10d872f
+		summarizeBy: none
+		sourceColumn: Product ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		lineageTag: 5d2d413c-6a8a-4d85-a7a3-cb09076a443a
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sub-Category
+		dataType: string
+		lineageTag: e44c8086-e1e5-44ed-81c6-150f70525cd9
+		summarizeBy: none
+		sourceColumn: Sub-Category
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_product = m
+		mode: import
+		queryGroup: dim_tbl
+		source =
+				let
+				    Source = Orders,
+				    DimProduct = Table.Distinct(Table.SelectColumns(Source, {"Product ID", "Category", "Sub-Category"})),
+				    #"Removed Duplicates_in_ProductID" = Table.Distinct(DimProduct, {"Product ID"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Removed Duplicates_in_ProductID",{{"Product ID", type text}, {"Category", type text}, {"Sub-Category", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

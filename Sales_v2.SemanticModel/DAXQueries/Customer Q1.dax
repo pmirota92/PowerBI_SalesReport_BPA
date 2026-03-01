@@ -1,0 +1,21 @@
+//DAX QUERY – FIX PROFIT (duzi klienci, niska marża)
+//Lista klientów do naprawy rentowności, nie do skalowania wolumenu
+EVALUATE
+FILTER (
+    ADDCOLUMNS (
+        SUMMARIZE (
+            fact_sales,
+            fact_sales[Customer ID]
+        ),
+        "Revenue", [Revenue],
+        "Gross Profit", [Profit_Total],
+        "Margin %", [Profit Margin Percentage],
+        "Profit per Unit", [Profit / Unit],
+        "MinRevenue Threshold", [Min Revenue (Dynamic)],
+        "Target Margin", [Target Margin (Dynamic)]
+    ),
+    [Revenue] >= [Min Revenue (Dynamic)]
+        && [Gross Profit] > 0
+        && [Profit Margin Percentage] < [Target Margin (Dynamic)]
+)
+ORDER BY [Revenue] DESC

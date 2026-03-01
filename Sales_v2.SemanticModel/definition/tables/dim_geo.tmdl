@@ -1,0 +1,73 @@
+table dim_geo
+	lineageTag: dd0c87ff-5b31-4df9-811c-a92eacc708d0
+
+	column 'Postal Code'
+		dataType: int64
+		formatString: 0
+		lineageTag: 1c152b78-f122-43c4-b110-8c451416a745
+		summarizeBy: none
+		sourceColumn: Postal Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column City
+		dataType: string
+		lineageTag: f7a42e5b-ed4f-471e-bbf0-0d4b001c6eab
+		dataCategory: City
+		summarizeBy: none
+		sourceColumn: City
+
+		annotation SummarizationSetBy = Automatic
+
+	column State
+		dataType: string
+		lineageTag: 59fc86b6-a170-4c28-9afa-47e3f683c523
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: State
+
+		annotation SummarizationSetBy = Automatic
+
+	column Region
+		dataType: string
+		lineageTag: 805a2695-9809-4438-8866-a60fcebabf57
+		summarizeBy: none
+		sourceColumn: Region
+
+		annotation SummarizationSetBy = Automatic
+
+	column Country
+		dataType: string
+		lineageTag: 9702e1de-bc6e-4a04-90c3-759d4646c890
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: Country
+
+		annotation SummarizationSetBy = Automatic
+
+	column GeoID
+		dataType: string
+		lineageTag: 39affc8f-6be2-407b-808c-d4f5d051fbb3
+		summarizeBy: none
+		sourceColumn: GeoID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_geo = m
+		mode: import
+		queryGroup: dim_tbl
+		source =
+				let
+				    Source = Orders,
+				    SelectedColumns = Table.SelectColumns(Source, {"Postal Code", "City","State", "Region", "Country"}),
+				    AddGeoID = Table.AddColumn(SelectedColumns, "GeoID", each [Postal Code] & " - " & [City]),
+				    RemovedDuplicates = Table.Distinct(AddGeoID),
+				    SortedTable = Table.Sort(RemovedDuplicates,{{"Postal Code", Order.Ascending}}),
+				    #"Changed Type" = Table.TransformColumnTypes(SortedTable,{{"City", type text}, {"State", type text}, {"Region", type text}, {"Country", type text}, {"Postal Code", Int64.Type}, {"GeoID", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,34 @@
+EVALUATE
+ADDCOLUMNS(
+    SUMMARIZE(
+        fact_sales, 
+        fact_sales[Product ID], 
+        fact_sales[Order Date]
+    ),
+    "PreviousPurchaseDate", 
+    CALCULATE(
+        MAX(fact_sales[Order Date]),
+        FILTER(
+            fact_sales,
+            fact_sales[Product ID] = EARLIER(fact_sales[Product ID]) &&
+            fact_sales[Order Date] < EARLIER(fact_sales[Order Date])
+        )
+    ),
+    "DaysBetweenPurchases", 
+    DATEDIFF(
+        CALCULATE(
+            MAX(fact_sales[Order Date]),
+            FILTER(
+                fact_sales,
+                fact_sales[Product ID] = EARLIER(fact_sales[Product ID]) &&
+                fact_sales[Order Date] < EARLIER(fact_sales[Order Date])
+            )
+        ),
+        fact_sales[Order Date],
+        DAY
+    )
+)
+ORDER BY 
+    fact_sales[Product ID],
+    fact_sales[Order Date]
+
