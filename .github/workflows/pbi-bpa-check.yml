@@ -18,19 +18,18 @@ jobs:
           Invoke-WebRequest -Uri $url -OutFile "TE.zip" -ErrorAction Stop
           Expand-Archive -Path "TE.zip" -DestinationPath "./TE"
 
-# 3. Diagnostyka i Uruchomienie BPA
+# 3. Uruchomienie analizy Best Practice Analyzer
       - name: Run Best Practice Analyzer
         shell: pwsh
         run: |
-          # 1. Sprawdźmy czy pliki istnieją (wynik zobaczysz w logach)
-          Write-Host "--- DIAGNOSTYKA ŚCIEŻEK ---"
-          Get-ChildItem -Recurse -Filter "model.bim" | Select-Object FullName
-          Get-ChildItem -Filter "BPARules.json" | Select-Object FullName
+          Write-Host "--- ROZPOCZYNANIE ANALIZY ---"
           
-          $modelPath = "$env:GITHUB_WORKSPACE\Sales_v2.SemanticModel\model.bim"
-          $rulesPath = "$env:GITHUB_WORKSPACE\BPARules.json"
-          $tePath = "$env:GITHUB_WORKSPACE\TE\TabularEditor.exe"
-
-          Write-Host "--- URUCHAMIANIE TABULAR EDITOR ---"
-          # Uruchomienie z pełnymi ścieżkami
-          & $tePath "$modelPath" -A "$rulesPath" -V
+          # Używamy ścieżki relatywnej, którą potwierdziliśmy w diagnostyce
+          ./TE/TabularEditor.exe "Sales_v2.SemanticModel/model.bim" -A "BPARules.json" -V
+          
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Tabular Editor znalazł błędy lub wystąpił błąd krytyczny (Kod: $LASTEXITCODE)"
+            exit 1
+          } else {
+            Write-Host "Analiza zakończona. Jeśli powyżej nie ma błędów, Twój model jest zgodny z BPA!"
+          }
