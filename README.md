@@ -46,7 +46,7 @@ Successfully managed an initial audit that revealed **300+ rule violations**. In
 ## 📊 Results in Action
 The automation provides a transparent, immutable log of all model violations. By integrating this into the workflow, the **"Definition of Done"** for any task is no longer subjective—it requires a passing grade from the Best Practice Analyzer.
 
-
+![PowerBI_SalesReport_BPA](GitActionsLog.png)
 ---
 
 ## 💡 Key Takeaways
