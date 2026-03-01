@@ -4,19 +4,22 @@ on: [push, pull_request]
 
 jobs:
   check-rules:
-    runs-on: windows-latest  # Musi być Windows, bo Tabular Editor 2 to aplikacja .exe
+    runs-on: windows-latest
     steps:
-      # 1. Pobranie Twojego kodu z repozytorium na maszynę GitHuba
+      # 1. Pobranie kodu źródłowego Twojego raportu
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Pobranie darmowej wersji Tabular Editor 2 (CLI)
+      # 2. Pobranie najnowszej wersji Tabular Editor CLI (2.27.2)
       - name: Download Tabular Editor CLI
         run: |
-          Invoke-WebRequest -Uri "https://github.com/TabularEditor/TabularEditor/releases/download/2.16.1/TabularEditor.2.16.1.zip" -OutFile "TE.zip"
+          $url = "https://cdn.tabulareditor.com/files/TabularEditor.2.27.2.zip"
+          Write-Host "Pobieranie Tabular Editor z: $url"
+          Invoke-WebRequest -Uri $url -OutFile "TE.zip" -ErrorAction Stop
           Expand-Archive -Path "TE.zip" -DestinationPath "./TE"
 
-      # 3. Uruchomienie analizy (To jest ta najważniejsza część z poprawioną ścieżką)
+      # 3. Uruchomienie analizy Best Practice Analyzer
       - name: Run Best Practice Analyzer
         run: |
+          # Ścieżka do folderu z Twoim modelem (SemanticModel) oraz pliku z regułami
           ./TE/TabularEditor.exe "./Sales_v2.SemanticModel" -A "./BPARules.json" -V
